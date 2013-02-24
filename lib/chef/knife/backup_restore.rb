@@ -114,7 +114,6 @@ module ServerBackup
          rescue
           ui.msg "#{client['name']} already exists; skipping"
          end
-        exit
       end
     end
 
