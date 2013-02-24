@@ -31,6 +31,7 @@ module ServerBackup
     deps do
       require 'chef/knife/core/object_loader'
       require 'chef/cookbook_uploader'
+      require 'chef/api_client'
     end
 
     banner "knife backup restore [-d DIR]"
@@ -53,10 +54,6 @@ module ServerBackup
       cookbooks
     end
 
-    def clients
-      restore_standard("clients", Chef::ApiClient)
-    end 
-    
     def nodes
       restore_standard("nodes", Chef::Node)
     end
@@ -99,6 +96,25 @@ module ServerBackup
         ui.msg "Updating #{component} from #{f}"
         updated = loader.load_from(component, f)
         updated.save
+      end
+    end
+
+    def clients
+      JSON.create_id = "no_thanks"
+      ui.msg "Restoring clients"
+      clients = Dir.glob(File.join(config[:backup_dir], "clients", "*.json"))
+      clients.each do |file|
+        client = JSON.parse(IO.read(file))
+        begin
+         rest.post_rest("clients", {
+            :name => client['name'],
+            :public_key => client['public_key'],
+            :admin => client['admin']
+         })
+         rescue
+          ui.msg "#{client['name']} already exists; skipping"
+         end
+        exit
       end
     end
 
