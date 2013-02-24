@@ -54,7 +54,7 @@ module ServerBackup
     end
 
     def clients
-      backup_standard("clients", Chef::ApiClient)
+      restore_standard("clients", Chef::ApiClient)
     end 
     
     def nodes
