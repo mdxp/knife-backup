@@ -45,11 +45,11 @@ module ServerBackup
       ui.warn "This will overwrite existing data!"
       ui.warn "Backup is at least 1 day old" if (Time.now - File.atime(config[:backup_dir])) > 86400
       ui.confirm "Do you want to restore backup, possibly overwriting exisitng data"
-      #clients
-      #nodes
-      #roles
-      #data_bags
-      #environments
+      clients
+      nodes
+      roles
+      data_bags
+      environments
       cookbooks
     end
 
