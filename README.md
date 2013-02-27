@@ -62,6 +62,7 @@ Pull requests are very welcome! Ideally create a topic branch for every separate
 ## Authors
 
 Created and maintained by [Marius Ducea][mdxp] (<marius.ducea@gmail.com>)
+Based on the original plugins by [Steven Danna][stevendanna] and [Joshua Timberman][jtimberman]
 
 ## License
 
