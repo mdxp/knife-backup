@@ -67,12 +67,12 @@ module ServerBackup
     end
 
     def data_bags
-      ui.msg "Restoring data bags"
+      ui.info "=== Restoring data bags ==="
       loader = Chef::Knife::Core::ObjectLoader.new(Chef::DataBagItem, ui)
       dbags = Dir.glob(File.join(config[:backup_dir], "data_bags", '*'))
       dbags.each do |bag|
         bag_name = File.basename(bag)
-        ui.msg "Creating data bag #{bag_name}"
+        ui.info "Restoring data_bag[#{bag_name}]"
         begin
           rest.post_rest("data", { "name" => bag_name})
         rescue Net::HTTPServerException => e
@@ -81,7 +81,7 @@ module ServerBackup
         dbag_items = Dir.glob(File.join(bag, "*"))
         dbag_items.each do |item_path|
           item_name = File.basename(item_path, '.json')
-          ui.msg "Restoring data_bag_item[#{bag_name}::#{item_name}]"
+          ui.info "Restoring data_bag_item[#{bag_name}::#{item_name}]"
           item = loader.load_from("data_bags", bag_name, item_path)
           dbag = Chef::DataBagItem.new
           dbag.data_bag(bag_name)
@@ -94,10 +94,10 @@ module ServerBackup
 
     def restore_standard(component, klass)
       loader = Chef::Knife::Core::ObjectLoader.new(klass, ui)
-      ui.msg "Restoring #{component}"
+      ui.info "=== Restoring #{component} ==="
       files = Dir.glob(File.join(config[:backup_dir], component, "*.json"))
       files.each do |f|
-        ui.msg "Updating #{component} from #{f}"
+        ui.info "Restoring #{component} from #{f}"
         updated = loader.load_from(component, f)
         updated.save
       end
@@ -105,7 +105,7 @@ module ServerBackup
 
     def clients
       JSON.create_id = "no_thanks"
-      ui.msg "Restoring clients"
+      ui.info "=== Restoring clients ==="
       clients = Dir.glob(File.join(config[:backup_dir], "clients", "*.json"))
       clients.each do |file|
         client = JSON.parse(IO.read(file))
@@ -122,7 +122,7 @@ module ServerBackup
     end
 
     def cookbooks
-      ui.msg "Restoring cookbooks"
+      ui.info "=== Restoring cookbooks ==="
       cookbooks = Dir.glob(File.join(config[:backup_dir], "cookbooks", '*'))
       cookbooks.each do |cb|
         full_cb = cb.split("/").last
@@ -134,7 +134,7 @@ module ServerBackup
           cbu = Chef::Knife::CookbookUpload.new
           cbu.name_args = [ cookbook ]
           cbu.config[:cookbook_path] = File.join(config[:backup_dir], "cookbooks")
-          puts cbu.name_args
+          ui.info "Restoring cookbook #{cbu.name_args}"
           cbu.run
         rescue Net::HTTPServerException => e
           handle_error 'cookbook', full_cb, e
