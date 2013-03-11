@@ -67,17 +67,21 @@ module ServerBackup
     end
 
     def data_bags
-      ui.msg "Restoring data bags"
+      ui.info "=== Restoring data bags ==="
       loader = Chef::Knife::Core::ObjectLoader.new(Chef::DataBagItem, ui)
       dbags = Dir.glob(File.join(config[:backup_dir], "data_bags", '*'))
       dbags.each do |bag|
         bag_name = File.basename(bag)
-        ui.msg "Creating data bag #{bag_name}"
-        rest.post_rest("data", { "name" => bag_name})
+        ui.info "Restoring data_bag[#{bag_name}]"
+        begin
+          rest.post_rest("data", { "name" => bag_name})
+        rescue Net::HTTPServerException => e
+          handle_error 'data_bag', bag_name, e
+        end
         dbag_items = Dir.glob(File.join(bag, "*"))
         dbag_items.each do |item_path|
           item_name = File.basename(item_path, '.json')
-          ui.msg "Restoring data_bag_item[#{bag_name}::#{item_name}]"
+          ui.info "Restoring data_bag_item[#{bag_name}::#{item_name}]"
           item = loader.load_from("data_bags", bag_name, item_path)
           dbag = Chef::DataBagItem.new
           dbag.data_bag(bag_name)
@@ -90,10 +94,10 @@ module ServerBackup
 
     def restore_standard(component, klass)
       loader = Chef::Knife::Core::ObjectLoader.new(klass, ui)
-      ui.msg "Restoring #{component}"
+      ui.info "=== Restoring #{component} ==="
       files = Dir.glob(File.join(config[:backup_dir], component, "*.json"))
       files.each do |f|
-        ui.msg "Updating #{component} from #{f}"
+        ui.info "Restoring #{component} from #{f}"
         updated = loader.load_from(component, f)
         updated.save
       end
@@ -101,36 +105,54 @@ module ServerBackup
 
     def clients
       JSON.create_id = "no_thanks"
-      ui.msg "Restoring clients"
+      ui.info "=== Restoring clients ==="
       clients = Dir.glob(File.join(config[:backup_dir], "clients", "*.json"))
       clients.each do |file|
         client = JSON.parse(IO.read(file))
         begin
-         rest.post_rest("clients", {
+          rest.post_rest("clients", {
             :name => client['name'],
             :public_key => client['public_key'],
             :admin => client['admin']
-         })
-         rescue
-          ui.msg "#{client['name']} already exists; skipping"
-         end
+          })
+        rescue Net::HTTPServerException => e
+          handle_error 'client', client['name'], e
+        end
       end
     end
 
     def cookbooks
-      ui.msg "Restoring cookbooks"
+      ui.info "=== Restoring cookbooks ==="
       cookbooks = Dir.glob(File.join(config[:backup_dir], "cookbooks", '*'))
       cookbooks.each do |cb|
         full_cb = cb.split("/").last
         cookbook = full_cb.reverse.split('-',2).last.reverse
         full_path = File.join(config[:backup_dir], "cookbooks", cookbook)
-        File.symlink(full_cb, full_path)
-        cbu = Chef::Knife::CookbookUpload.new
-        cbu.name_args = [ cookbook ]
-        cbu.config[:cookbook_path] = File.join(config[:backup_dir], "cookbooks")
-        puts cbu.name_args
-        cbu.run
-        File.unlink(full_path)
+
+        begin
+          File.symlink(full_cb, full_path)
+          cbu = Chef::Knife::CookbookUpload.new
+          cbu.name_args = [ cookbook ]
+          cbu.config[:cookbook_path] = File.join(config[:backup_dir], "cookbooks")
+          ui.info "Restoring cookbook #{cbu.name_args}"
+          cbu.run
+        rescue Net::HTTPServerException => e
+          handle_error 'cookbook', full_cb, e
+        ensure
+          File.unlink(full_path)
+        end
+      end
+    end
+
+    def handle_error(type, name, error)
+      thing = "#{type}[#{name}]"
+      case error.response
+      when Net::HTTPConflict # 409
+        ui.warn "#{thing} already exists; skipping"
+      when Net::HTTPClientError # 4xx Catch All
+        ui.error "Failed to create #{thing}: #{error.response}; skipping"
+      else
+        ui.error "Failed to create #{thing}: #{error.response}; skipping"
       end
     end
 
