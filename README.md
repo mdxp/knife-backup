@@ -33,8 +33,8 @@ knife backup --help
 Currently the available commands are:
 
 ```bash
-knife backup export [-d DIR]
-knife backup restore [-d DIR]
+knife backup export [-D DIR]
+knife backup restore [-D DIR]
 ```
 
 Note: you should treat this as beta software; I'm using it with success for my needs and hopefully you will find it useful too.

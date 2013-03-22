@@ -30,10 +30,10 @@ module ServerBackup
       require 'chef/cookbook_loader'
     end
 
-    banner "knife backup export [-d DIR]"
+    banner "knife backup export [-D DIR]"
 
     option :backup_dir,
-    :short => "-d DIR",
+    :short => "-D DIR",
     :long => "--backup-directory DIR",
     :description => "Store backup data in DIR.  DIR will be created if it does not already exist.",
     :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")

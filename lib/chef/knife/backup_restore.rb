@@ -34,10 +34,10 @@ module ServerBackup
       require 'chef/api_client'
     end
 
-    banner "knife backup restore [-d DIR]"
+    banner "knife backup restore [-D DIR]"
 
     option :backup_dir,
-    :short => "-d DIR",
+    :short => "-D DIR",
     :long => "--backup-directory DIR",
     :description => "Restore backup data from DIR.",
     :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
