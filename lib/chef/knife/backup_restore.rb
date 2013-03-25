@@ -17,7 +17,7 @@
 
 class Chef
   class Knife
-    class CookbookUpload
+    class CookbookUpload < Knife
       def check_for_dependencies!(cookbook)
       end
     end
