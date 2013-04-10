@@ -34,7 +34,7 @@ module ServerBackup
       require 'chef/api_client'
     end
 
-    banner "knife backup restore [-D DIR]"
+    banner "knife backup restore [COMPONENT [COMPONENT ...]] [-D DIR] (options)"
 
     option :backup_dir,
     :short => "-D DIR",
@@ -46,12 +46,20 @@ module ServerBackup
       ui.warn "This will overwrite existing data!"
       ui.warn "Backup is at least 1 day old" if (Time.now - File.atime(config[:backup_dir])) > 86400
       ui.confirm "Do you want to restore backup, possibly overwriting exisitng data"
-      clients
-      nodes
-      roles
-      data_bags
-      environments
-      cookbooks
+      validate!
+      components = name_args.empty? ? COMPONENTS.keys : name_args
+      Array(components).each { |component| self.send(component) }
+    end
+
+    private
+    COMPONENTS = %w(clients nodes roles data_bags environments cookbooks)
+
+    def validate!
+      bad_names = name_args - COMPONENTS
+      unless bad_names.empty?
+        ui.error "Component types #{bad_names.join(",")} are not valid."
+        exit 1
+      end
     end
 
     def nodes
