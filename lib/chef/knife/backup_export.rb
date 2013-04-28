@@ -21,7 +21,6 @@ require 'chef/node'
 require 'chef/api_client'
 require 'chef/knife/cookbook_download'
 
-
 module ServerBackup
   class BackupExport < Chef::Knife
 
@@ -30,7 +29,7 @@ module ServerBackup
       require 'chef/cookbook_loader'
     end
 
-    banner "knife backup export [-D DIR]"
+    banner "knife backup export [COMPONENT [COMPONENT ...]] [-D DIR] (options)"
 
     option :backup_dir,
     :short => "-D DIR",
@@ -45,12 +44,20 @@ module ServerBackup
      :boolean => true
 
     def run
-      clients
-      nodes
-      roles
-      data_bags
-      environments
-      cookbooks
+      validate!
+      components = name_args.empty? ? COMPONENTS.keys : name_args
+      Array(components).each { |component| self.send(component) }
+    end
+
+    private
+    COMPONENTS = %w(clients nodes roles data_bags environments cookbooks)
+
+    def validate!
+      bad_names = name_args - COMPONENTS
+      unless bad_names.empty?
+        ui.error "Component types #{bad_names.join(",")} are not valid."
+        exit 1
+      end
     end
 
     def nodes
