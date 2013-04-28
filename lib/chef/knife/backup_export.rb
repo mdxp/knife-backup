@@ -108,7 +108,7 @@ module ServerBackup
     end
 
     def cookbooks
-      ui.msg "Backing up cookboks"
+      ui.msg "Backing up cookbooks"
       dir = File.join(config[:backup_dir], "cookbooks")
       FileUtils.mkdir_p(dir)
       if config[:latest]
@@ -117,7 +117,7 @@ module ServerBackup
         cookbooks = rest.get_rest("/cookbooks?num_versions=all")
       end
       cookbooks.keys.each do |cb|
-        ui.msg "Backing up coookbook #{cb}"
+        ui.msg "Backing up cookbook #{cb}"
         dld = Chef::Knife::CookbookDownload.new
         cookbooks[cb]['versions'].each do |ver|
           dld.name_args = [cb, ver['version']]
