@@ -45,7 +45,7 @@ module ServerBackup
 
     def run
       validate!
-      components = name_args.empty? ? COMPONENTS.keys : name_args
+      components = name_args.empty? ? COMPONENTS : name_args
       Array(components).each { |component| self.send(component) }
     end
 
