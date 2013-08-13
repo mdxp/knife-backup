@@ -140,6 +140,7 @@ module ServerBackup
         begin
           File.symlink(full_cb, full_path)
           cbu = Chef::Knife::CookbookUpload.new
+          Chef::Knife::CookbookUpload.load_deps
           cbu.name_args = [ cookbook ]
           cbu.config[:cookbook_path] = File.join(config[:backup_dir], "cookbooks")
           ui.info "Restoring cookbook #{cbu.name_args}"
