@@ -33,8 +33,11 @@ knife backup --help
 Currently the available commands are:
 
 ```bash
-knife backup export [-D DIR]
-knife backup restore [-D DIR]
+knife backup export [component component ...] [-D DIR]
+knife backup restore [component component ...] [-D DIR]
+
+#Example:
+knife backup export cookbooks roles environments -D ~/my_chef_backup
 ```
 
 Note: you should treat this as beta software; I'm using it with success for my needs and hopefully you will find it useful too.
@@ -42,7 +45,6 @@ Note: you should treat this as beta software; I'm using it with success for my n
 ## Todo/Ideas
   
   * Timestamp for the backup folder
-  * Limit the backup to just some objects (for ex, just backup the cookbooks or just the nodes)
   * Track the failed downloads and report them at the end
   * Find out if there is a way to overwrite a client object.
 
