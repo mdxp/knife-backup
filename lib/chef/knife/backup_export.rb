@@ -51,6 +51,7 @@ module ServerBackup
 
     private
     COMPONENTS = %w(clients nodes roles data_bags environments cookbooks)
+    LOAD_TRIES = 5
 
     def validate!
       bad_names = name_args - COMPONENTS
@@ -99,11 +100,24 @@ module ServerBackup
       klass.list.each do |component_name, url|
         next if component == "environments" && component_name == "_default"
         ui.msg "Backing up #{component} #{component_name}"
-        component_obj = klass.load(component_name)
+        component_obj = load_object(klass, component_name)
+        unless component_obj
+          ui.error "Could not load #{klass} #{component_name}."
+          next
+        end
         File.open(File.join(dir, "#{component_name}.json"), "w") do |component_file|
-          #component_file.print(component_obj.to_json)
           component_file.print(JSON.pretty_generate(component_obj))
         end
+      end
+    end
+
+    def load_object(klass, name, try = 1)
+      klass.load(name)
+    rescue NoMethodError
+      ui.warn "Problem loading #{klass} #{name}. Try #{try}/#{LOAD_TRIES}"
+      if try < LOAD_TRIES
+        try += 1
+        load_object(klass, name, try)
       end
     end
 
