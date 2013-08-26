@@ -32,16 +32,16 @@ module ServerBackup
     banner "knife backup export [COMPONENT [COMPONENT ...]] [-D DIR] (options)"
 
     option :backup_dir,
-    :short => "-D DIR",
-    :long => "--backup-directory DIR",
-    :description => "Store backup data in DIR.  DIR will be created if it does not already exist.",
-    :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
+      :short => "-D DIR",
+      :long => "--backup-directory DIR",
+      :description => "Store backup data in DIR.  DIR will be created if it does not already exist.",
+      :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
 
     option :latest,
-     :short => "-N",
-     :long => "--latest",
-     :description => "The version of the cookbook to download",
-     :boolean => true
+      :short => "-N",
+      :long => "--latest",
+      :description => "The version of the cookbook to download",
+      :boolean => true
 
     def run
       validate!
