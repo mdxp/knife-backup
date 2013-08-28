@@ -37,10 +37,10 @@ module ServerBackup
     banner "knife backup restore [COMPONENT [COMPONENT ...]] [-D DIR] (options)"
 
     option :backup_dir,
-    :short => "-D DIR",
-    :long => "--backup-directory DIR",
-    :description => "Restore backup data from DIR.",
-    :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
+      :short => "-D DIR",
+      :long => "--backup-directory DIR",
+      :description => "Restore backup data from DIR.",
+      :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
 
     def run
       ui.warn "This will overwrite existing data!"
@@ -133,20 +133,21 @@ module ServerBackup
       ui.info "=== Restoring cookbooks ==="
       cookbooks = Dir.glob(File.join(config[:backup_dir], "cookbooks", '*'))
       cookbooks.each do |cb|
-        full_cb = cb.split("/").last
-        cookbook = full_cb.reverse.split('-',2).last.reverse
-        full_path = File.join(config[:backup_dir], "cookbooks", cookbook)
+        full_cb = File.expand_path(cb)
+        cb_name = File.basename(cb)
+        cookbook = cb_name.reverse.split('-',2).last.reverse
+        full_path = File.join(File.dirname(full_cb), cookbook)
 
         begin
           File.symlink(full_cb, full_path)
           cbu = Chef::Knife::CookbookUpload.new
           Chef::Knife::CookbookUpload.load_deps
           cbu.name_args = [ cookbook ]
-          cbu.config[:cookbook_path] = File.join(config[:backup_dir], "cookbooks")
+          cbu.config[:cookbook_path] = File.dirname(full_path)
           ui.info "Restoring cookbook #{cbu.name_args}"
           cbu.run
         rescue Net::HTTPServerException => e
-          handle_error 'cookbook', full_cb, e
+          handle_error 'cookbook', cb_name, e
         ensure
           File.unlink(full_path)
         end
