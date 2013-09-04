@@ -32,6 +32,7 @@ module ServerBackup
       require 'chef/knife/core/object_loader'
       require 'chef/cookbook_uploader'
       require 'chef/api_client'
+      require 'securerandom'
     end
 
     banner "knife backup restore [COMPONENT [COMPONENT ...]] [-D DIR] (options)"
@@ -52,7 +53,7 @@ module ServerBackup
     end
 
     private
-    COMPONENTS = %w(clients nodes roles data_bags environments cookbooks)
+    COMPONENTS = %w(clients users nodes roles data_bags environments cookbooks)
 
     def validate!
       bad_names = name_args - COMPONENTS
@@ -125,6 +126,31 @@ module ServerBackup
           })
         rescue Net::HTTPServerException => e
           handle_error 'client', client['name'], e
+        end
+      end
+    end
+
+    def users
+      JSON.create_id = "no_thanks"
+      ui.info "=== Restoring users ==="
+      users = Dir.glob(File.join(config[:backup_dir], "users", "*.json"))
+      if !users.empty? and Chef::VERSION !~ /^1[1-9]\./
+        ui.warn "users restore only supported on chef >= 11"
+        return
+      end
+      users.each do |file|
+        user = JSON.parse(IO.read(file))
+        password = SecureRandom.hex[0..7]
+        begin
+          rest.post_rest("users", {
+            :name => user['name'],
+            :public_key => user['public_key'],
+            :admin => user['admin'],
+            :password => password
+          })
+          ui.info "Set password for #{user['name']} to #{password}, please update"
+        rescue Net::HTTPServerException => e
+          handle_error 'user', user['name'], e
         end
       end
     end
