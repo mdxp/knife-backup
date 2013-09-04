@@ -19,7 +19,9 @@
 
 require 'chef/node'
 require 'chef/api_client'
-require 'chef/user'
+if Chef::VERSION =~ /^1[1-9]\./
+  require 'chef/user'
+end
 require 'chef/knife/cookbook_download'
 
 module ServerBackup
