@@ -70,7 +70,11 @@ module ServerBackup
     end
 
     def users 
-      backup_standard("users", Chef::User)
+      if Chef::VERSION =~ /^1[1-9]\./
+        backup_standard("users", Chef::User)
+      else
+        ui.warn "users export only supported on chef >= 11"
+      end
     end
 
     def roles

@@ -4,7 +4,7 @@ Knife-Backup
 Knife-Backup is a [Knife](http://wiki.opscode.com/display/chef/Knife) plugin that can help you backup and restore a chef server. It is based on the great work of [Steven Danna][stevendanna] and [Joshua Timberman][jtimberman] on the [BackupExport][backup_export] and [BackupRestore][backup_restore] plugins. Currently knife-backup has support for the following objects:
 
   * clients
-  * users
+  * users (chef >= 11)
   * nodes
   * roles
   * environments
