@@ -133,7 +133,6 @@ module ServerBackup
     def users
       JSON.create_id = "no_thanks"
       ui.info "=== Restoring users ==="
-      password = SecureRandom.hex[0..7]
       users = Dir.glob(File.join(config[:backup_dir], "users", "*.json"))
       if !users.empty? and Chef::VERSION !~ /^1[1-9]\./
         ui.warn "users restore only supported on chef >= 11"
@@ -141,6 +140,7 @@ module ServerBackup
       end
       users.each do |file|
         user = JSON.parse(IO.read(file))
+        password = SecureRandom.hex[0..7]
         begin
           rest.post_rest("users", {
             :name => user['name'],
