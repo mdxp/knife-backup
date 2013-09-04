@@ -19,6 +19,7 @@
 
 require 'chef/node'
 require 'chef/api_client'
+require 'chef/user'
 require 'chef/knife/cookbook_download'
 
 module ServerBackup
@@ -50,7 +51,7 @@ module ServerBackup
     end
 
     private
-    COMPONENTS = %w(clients nodes roles data_bags environments cookbooks)
+    COMPONENTS = %w(clients users nodes roles data_bags environments cookbooks)
 
     def validate!
       bad_names = name_args - COMPONENTS
@@ -66,6 +67,10 @@ module ServerBackup
 
     def clients
       backup_standard("clients", Chef::ApiClient)
+    end
+
+    def users 
+      backup_standard("users", Chef::User)
     end
 
     def roles
