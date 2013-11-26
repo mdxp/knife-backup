@@ -99,11 +99,18 @@ module ServerBackup
       klass.list.each do |component_name, url|
         next if component == "environments" && component_name == "_default"
         ui.msg "Backing up #{component} #{component_name}"
-        component_obj = klass.load(component_name)
-        File.open(File.join(dir, "#{component_name}.json"), "w") do |component_file|
-          #component_file.print(component_obj.to_json)
-          component_file.print(JSON.pretty_generate(component_obj))
+        begin
+          component_obj = klass.load(component_name)
+        rescue
+          ui.msg "Failed to load #{component} #{component_name}... Skipping"
+        else
+          File.open(File.join(dir, "#{component_name}.json"), "w") do |component_file|
+            #component_file.print(component_obj.to_json)
+            component_file.print(JSON.pretty_generate(component_obj))
+          end
         end
+
+
       end
     end
 
