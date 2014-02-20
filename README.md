@@ -4,6 +4,7 @@ Knife-Backup
 Knife-Backup is a [Knife](http://wiki.opscode.com/display/chef/Knife) plugin that can help you backup and restore a chef server. It is based on the great work of [Steven Danna][stevendanna] and [Joshua Timberman][jtimberman] on the [BackupExport][backup_export] and [BackupRestore][backup_restore] plugins. Currently knife-backup has support for the following objects:
 
   * clients
+  * users (chef >= 11)
   * nodes
   * roles
   * environments
@@ -11,6 +12,8 @@ Knife-Backup is a [Knife](http://wiki.opscode.com/display/chef/Knife) plugin tha
   * cookbooks and all their versions.
 
 knife-backup will backup all cookbook versions available on the chef server. Cookbooks are normally available in a repository and should be easy to upload like that, but if you are using various cookbook versions in each environment then it might not be so trivial to find and upload them back to the server; downloading them and having them available to upload like that is simple and clean. If you have too many cookbook [versions](http://www.ducea.com/2013/02/26/knife-cleanup/) then you might want to cleanup them first using something like [knife-cleanup][knifecleanup]
+
+Users are a bit tricky, knife-backup can't gather the crypted passwords via the chef server so it's forced to reset them to a random string on restore. Be sure to copy them from the restore output or reset them.
 
 *Known limitation*: currently it is not possible to overwritte a client object already available on the target server and these will be skipped. 
 

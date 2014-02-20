@@ -19,6 +19,9 @@
 
 require 'chef/node'
 require 'chef/api_client'
+if Chef::VERSION =~ /^1[1-9]\./
+  require 'chef/user'
+end
 require 'chef/knife/cookbook_download'
 
 module ServerBackup
@@ -50,7 +53,7 @@ module ServerBackup
     end
 
     private
-    COMPONENTS = %w(clients nodes roles data_bags environments cookbooks)
+    COMPONENTS = %w(clients users nodes roles data_bags environments cookbooks)
     LOAD_TRIES = 5
 
     def validate!
@@ -67,6 +70,14 @@ module ServerBackup
 
     def clients
       backup_standard("clients", Chef::ApiClient)
+    end
+
+    def users 
+      if Chef::VERSION =~ /^1[1-9]\./
+        backup_standard("users", Chef::User)
+      else
+        ui.warn "users export only supported on chef >= 11"
+      end
     end
 
     def roles
