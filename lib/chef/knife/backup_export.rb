@@ -160,6 +160,9 @@ module ServerBackup
               cbpath_withver = File.join(dir, cb + "-" + ver['version'])
               cbpath_nover = File.join(dir, cb)
               ui.msg "Renaming cookbook to #{cbpath_nover}"
+              if File.directory?(cbpath_nover)
+                FileUtils.rm_r(cbpath_nover)
+              end
               FileUtils.mv(cbpath_withver, cbpath_nover)
             end
           rescue
