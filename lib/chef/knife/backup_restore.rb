@@ -163,7 +163,12 @@ module ServerBackup
         next unless File.directory?(cb)
         full_cb = File.expand_path(cb)
         cb_name = File.basename(cb)
-        cookbook = cb_name.reverse.split('-',2).last.reverse
+        #cookbook = cb_name.reverse.split('-',2).last.reverse
+        if m = cb_name.match(/^(.*)-\d+\.\d+(\.\d+)?$/)
+          cookbook = m[1]
+        else
+          cookbook = cb_name
+        end
         full_path = File.join(File.dirname(full_cb), cookbook)
 
         begin
