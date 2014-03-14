@@ -122,7 +122,8 @@ module ServerBackup
           rest.post_rest("clients", {
             :name => client['name'],
             :public_key => client['public_key'],
-            :admin => client['admin']
+            :admin => client['admin'],
+            :validator => client['validator']
           })
         rescue Net::HTTPServerException => e
           handle_error 'client', client['name'], e
