@@ -33,6 +33,7 @@ module ServerBackup
       require 'chef/cookbook_uploader'
       require 'chef/api_client'
       require 'securerandom'
+      require 'json'
     end
 
     banner "knife backup restore [COMPONENT [COMPONENT ...]] [-D DIR] (options)"
