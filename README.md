@@ -27,12 +27,6 @@ gem install knife-backup
 
 ## Usage
 
-For a list of commands:
-
-```bash
-knife backup --help
-```
-
 Currently the available commands are:
 
 ```bash
@@ -41,6 +35,12 @@ knife backup restore [component component ...] [-D DIR]
 
 #Example:
 knife backup export cookbooks roles environments -D ~/my_chef_backup
+```
+
+For more information on commands:
+
+```bash
+knife backup SUB-COMMAND --help
 ```
 
 Note: you should treat this as beta software; I'm using it with success for my needs and hopefully you will find it useful too.
