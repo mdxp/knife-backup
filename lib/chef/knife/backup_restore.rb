@@ -161,13 +161,19 @@ module ServerBackup
       ui.info "=== Restoring cookbooks ==="
       cookbooks = Dir.glob(File.join(config[:backup_dir], "cookbooks", '*'))
       cookbooks.each do |cb|
+        next unless File.directory?(cb)
         full_cb = File.expand_path(cb)
         cb_name = File.basename(cb)
-        cookbook = cb_name.reverse.split('-',2).last.reverse
+        #cookbook = cb_name.reverse.split('-',2).last.reverse
+        if m = cb_name.match(/^(.*)-\d+\.\d+(\.\d+)?$/)
+          cookbook = m[1]
+        else
+          cookbook = cb_name
+        end
         full_path = File.join(File.dirname(full_cb), cookbook)
 
         begin
-          File.symlink(full_cb, full_path)
+          File.symlink(full_cb, full_path) if full_cb != full_path
           cbu = Chef::Knife::CookbookUpload.new
           Chef::Knife::CookbookUpload.load_deps
           cbu.name_args = [ cookbook ]
@@ -177,7 +183,7 @@ module ServerBackup
         rescue Net::HTTPServerException => e
           handle_error 'cookbook', cb_name, e
         ensure
-          File.unlink(full_path)
+          File.unlink(full_path) if File.symlink?(full_path)
         end
       end
     end

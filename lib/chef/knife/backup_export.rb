@@ -46,6 +46,12 @@ module ServerBackup
       :description => "The version of the cookbook to download",
       :boolean => true
 
+    option :cbnover,
+      :short => "-Q",
+      :long => "--cookbook-noversion",
+      :description => "Don't tag cookbooks with version",
+      :boolean => true
+
     def run
       validate!
       components = name_args.empty? ? COMPONENTS : name_args
@@ -136,7 +142,7 @@ module ServerBackup
       ui.msg "Backing up cookbooks"
       dir = File.join(config[:backup_dir], "cookbooks")
       FileUtils.mkdir_p(dir)
-      if config[:latest]
+      if config[:latest] or config[:cbnover]
         cookbooks = rest.get_rest("/cookbooks?latest")
       else
         cookbooks = rest.get_rest("/cookbooks?num_versions=all")
@@ -150,6 +156,15 @@ module ServerBackup
           dld.config[:force] = true
           begin
             dld.run
+            if config[:cbnover]
+              cbpath_withver = File.join(dir, cb + "-" + ver['version'])
+              cbpath_nover = File.join(dir, cb)
+              ui.msg "Renaming cookbook to #{cbpath_nover}"
+              if File.directory?(cbpath_nover)
+                FileUtils.rm_r(cbpath_nover)
+              end
+              FileUtils.mv(cbpath_withver, cbpath_nover)
+            end
           rescue
             ui.msg "Failed to download cookbook #{cb} version #{ver['version']}... Skipping"
             FileUtils.rm_r(File.join(dir, cb + "-" + ver['version']))
