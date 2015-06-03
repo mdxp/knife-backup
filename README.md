@@ -15,7 +15,7 @@ knife-backup will backup all cookbook versions available on the chef server. Coo
 
 Users are a bit tricky, knife-backup can't gather the crypted passwords via the chef server so it's forced to reset them to a random string on restore. Be sure to copy them from the restore output or reset them.
 
-*Known limitation*: currently it is not possible to overwritte a client object already available on the target server and these will be skipped.
+*Known limitation*: currently it is not possible to overwrite a client object already available on the target server and these will be skipped.
 
 ## Installation
 
@@ -36,7 +36,7 @@ knife backup restore [component component ...] [-D DIR]
 #Example:
 knife backup export cookbooks roles environments -D ~/my_chef_backup
 ```
-### Optional Switches for export
+#### Optional Switches for export
 
 - `-N`, `--latest` only download the latest version of a cookbook
 - `-I`, `--ignore-permissions` ignore any permission errors during export
