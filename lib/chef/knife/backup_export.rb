@@ -46,6 +46,12 @@ module ServerBackup
       :description => "The version of the cookbook to download",
       :boolean => true
 
+    option :ignore_perm,
+      :short => "-I",
+      :long => "--ignore-permissions",
+      :description => "Continue in case a permission problem occurs",
+      :boolean => true
+
     def run
       validate!
       components = name_args.empty? ? COMPONENTS : name_args
@@ -72,7 +78,7 @@ module ServerBackup
       backup_standard("clients", Chef::ApiClient)
     end
 
-    def users 
+    def users
       if Chef::VERSION =~ /^1[1-9]\./
         backup_standard("users", Chef::User)
       else
@@ -129,6 +135,13 @@ module ServerBackup
       if try < LOAD_TRIES
         try += 1
         load_object(klass, name, try)
+      end
+    rescue Net::HTTPServerException => e
+      if config[:ignore_perm]
+        ui.warn "Problem loading #{name} #{e.message}."
+        ui.warn "Possibly an issue with permissions on the chef server... Skipping"
+      else
+        raise
       end
     end
 
