@@ -167,7 +167,7 @@ module ServerBackup
         full_cb = File.expand_path(cb)
         cb_name = File.basename(cb)
         cookbook = cb_name.reverse.split('-',2).last.reverse
-        full_path = File.join(File.dirname(config[:backup_dir] + "/tmp"), cookbook) 
+        full_path = File.join(config[:backup_dir] + "/tmp", cookbook) 
         begin
           File.symlink(full_cb, full_path)
           cbu = Chef::Knife::CookbookUpload.new
@@ -175,14 +175,12 @@ module ServerBackup
           cbu.name_args = [ cookbook ]
           cbu.config[:cookbook_path] = File.dirname(full_path)
           ui.info "Restoring cookbook #{cbu.name_args}"
-          ui.info "TMP=" + config[:backup_dir] + "/tmp"
           cbu.run
         rescue Net::HTTPServerException => e
           handle_error 'cookbook', cb_name, e
         ensure
           File.unlink(full_path)
         end
-        ui.info "Deleting TMP"
         FileUtils.rm_rf(config[:backup_dir] + "/tmp")
       end
     end
