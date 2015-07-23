@@ -117,7 +117,7 @@ module ServerBackup
       klass.list.each do |component_name, url|
         next if component == "environments" && component_name == "_default"
         ui.msg "Backing up #{component} #{component_name}"
-        component_obj = load_object(klass, component_name)
+        component_obj = load_object(klass, component_name).to_hash
         unless component_obj
           ui.error "Could not load #{klass} #{component_name}."
           next

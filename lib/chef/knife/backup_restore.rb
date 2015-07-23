@@ -118,6 +118,7 @@ module ServerBackup
       ui.info "=== Restoring clients ==="
       clients = Dir.glob(File.join(config[:backup_dir], "clients", "*.json"))
       clients.each do |file|
+        ui.info "Restoring clients from #{file}"
         client = JSON.parse(IO.read(file))
         begin
           rest.post_rest("clients", {
@@ -167,7 +168,7 @@ module ServerBackup
         full_cb = File.expand_path(cb)
         cb_name = File.basename(cb)
         cookbook = cb_name.reverse.split('-',2).last.reverse
-        full_path = File.join(config[:backup_dir] + "/tmp", cookbook) 
+        full_path = File.join(config[:backup_dir] + "/tmp", cookbook)
         begin
           File.symlink(full_cb, full_path)
           cbu = Chef::Knife::CookbookUpload.new
