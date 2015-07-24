@@ -19,7 +19,8 @@
 
 require 'chef/node'
 require 'chef/api_client'
-if Chef::VERSION =~ /^1[1-9]\./
+
+if Chef::VERSION =~ /^11\./
   require 'chef/user'
 end
 require 'chef/knife/cookbook_download'
@@ -79,10 +80,10 @@ module ServerBackup
     end
 
     def users
-      if Chef::VERSION =~ /^1[1-9]\./
+      if Chef::VERSION =~ /^1[1]\./
         backup_standard("users", Chef::User)
       else
-        ui.warn "users export only supported on chef >= 11"
+        ui.warn "users export only supported on chef == 11"
       end
     end
 

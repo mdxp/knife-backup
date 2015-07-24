@@ -137,8 +137,8 @@ module ServerBackup
       JSON.create_id = "no_thanks"
       ui.info "=== Restoring users ==="
       users = Dir.glob(File.join(config[:backup_dir], "users", "*.json"))
-      if !users.empty? and Chef::VERSION !~ /^1[1-9]\./
-        ui.warn "users restore only supported on chef >= 11"
+      if !users.empty? and Chef::VERSION !~ /^11\./
+        ui.warn "users restore only supported on chef == 11"
         return
       end
       users.each do |file|
