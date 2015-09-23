@@ -170,7 +170,12 @@ module ServerBackup
         cookbook = cb_name.reverse.split('-',2).last.reverse
         full_path = File.join(config[:backup_dir] + "/tmp", cookbook)
         begin
-          File.symlink(full_cb, full_path)
+          if Chef::Platform.windows?
+            ui.info "Copy cookbook #{full_cb} to #{full_path}"
+            FileUtils.copy_entry(full_cb, full_path)
+          else
+            File.symlink(full_cb, full_path)
+          end
           cbu = Chef::Knife::CookbookUpload.new
           Chef::Knife::CookbookUpload.load_deps
           cbu.name_args = [ cookbook ]
@@ -180,7 +185,11 @@ module ServerBackup
         rescue Net::HTTPServerException => e
           handle_error 'cookbook', cb_name, e
         ensure
-          File.unlink(full_path)
+          if Chef::Platform.windows?
+            FileUtils.remove_dir(full_path)
+          else
+            File.unlink(full_path)
+          end
         end
         FileUtils.rm_rf(config[:backup_dir] + "/tmp")
       end
