@@ -159,21 +159,26 @@ module ServerBackup
     end
 
     def cookbooks
+      count = 0
       ui.info "=== Restoring cookbooks ==="
       cookbooks = Dir.glob(File.join(config[:backup_dir], "cookbooks", '*'))
       #Make tmp dir
-       cookbooks.each do |cb|
-        FileUtils.rm_rf(config[:backup_dir] + "/tmp")
-        Dir.mkdir config[:backup_dir] + "/tmp"
+      FileUtils.rm_rf(config[:backup_dir] + "/tmp")
+      Dir.mkdir config[:backup_dir] + "/tmp"
+      cookbooks.each do |cb|
         full_cb = File.expand_path(cb)
         cb_name = File.basename(cb)
         cookbook = cb_name.reverse.split('-',2).last.reverse
         full_path = File.join(config[:backup_dir] + "/tmp", cookbook)
         begin
+          count += 1
           if Chef::Platform.windows?
+            Dir.mkdir config[:backup_dir] + "/tmp/#{cb_name}"
+            full_path = File.join(config[:backup_dir] + "/tmp/#{cb_name}", cookbook)
             ui.info "Copy cookbook #{full_cb} to #{full_path}"
             FileUtils.copy_entry(full_cb, full_path)
           else
+            full_path = File.join(config[:backup_dir] + "/tmp", cookbook)
             File.symlink(full_cb, full_path)
           end
           cbu = Chef::Knife::CookbookUpload.new
@@ -186,13 +191,16 @@ module ServerBackup
           handle_error 'cookbook', cb_name, e
         ensure
           if Chef::Platform.windows?
-            FileUtils.remove_dir(full_path)
+            rm_path = config[:backup_dir] + "/tmp/#{cb_name}"
+            ui.info "remove dir #{rm_path}"
+            FileUtils.remove_dir(rm_path, force = true)
           else
             File.unlink(full_path)
           end
         end
-        FileUtils.rm_rf(config[:backup_dir] + "/tmp")
       end
+      ui.info "Uploaded #{count} Cookbooks"
+      FileUtils.rm_rf(config[:backup_dir] + "/tmp")
     end
 
     def handle_error(type, name, error)
