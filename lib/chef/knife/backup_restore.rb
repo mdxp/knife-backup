@@ -189,6 +189,8 @@ module ServerBackup
           cbu.run
         rescue Net::HTTPServerException => e
           handle_error 'cookbook', cb_name, e
+        rescue Chef::Exceptions::JSON::ParseError => e
+          handle_error 'cookbook', cb_name, e
         ensure
           if Chef::Platform.windows?
             rm_path = config[:backup_dir] + "/tmp/#{cb_name}"
@@ -205,6 +207,8 @@ module ServerBackup
 
     def handle_error(type, name, error)
       thing = "#{type}[#{name}]"
+      return ui.error "Error parsing JSON for: #{thing}" if error.kind_of?(Chef::Exceptions::JSON::ParseError)
+
       case error.response
       when Net::HTTPConflict # 409
         ui.warn "#{thing} already exists; skipping"
