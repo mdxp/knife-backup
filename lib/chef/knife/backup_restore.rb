@@ -44,6 +44,13 @@ module ServerBackup
       :description => "Restore backup data from DIR.",
       :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
 
+    option :ignore_metadata_errors,
+      :short => "-i",
+      :long => "--ignore-metadata-errors",
+      :description => "Ignore metadata errors when restoring cookbooks",
+      :boolean => true,
+      :default => Chef::Config[:knife][:ignore_metadata_errors] ? Chef::Config[:knife][:ignore_metadata_errors] : false
+
     def run
       ui.warn "This will overwrite existing data!"
       ui.warn "Backup is at least 1 day old" if (Time.now - File.atime(config[:backup_dir])) > 86400
@@ -189,6 +196,9 @@ module ServerBackup
           cbu.run
         rescue Net::HTTPServerException => e
           handle_error 'cookbook', cb_name, e
+        rescue Chef::Exceptions::JSON::ParseError => e
+          handle_error 'cookbook', cb_name, e
+          throw e unless config[:ignore_metadata_errors]
         ensure
           if Chef::Platform.windows?
             rm_path = config[:backup_dir] + "/tmp/#{cb_name}"
@@ -205,6 +215,8 @@ module ServerBackup
 
     def handle_error(type, name, error)
       thing = "#{type}[#{name}]"
+      return ui.error "Error parsing JSON for: #{thing}" if error.kind_of?(Chef::Exceptions::JSON::ParseError)
+
       case error.response
       when Net::HTTPConflict # 409
         ui.warn "#{thing} already exists; skipping"
