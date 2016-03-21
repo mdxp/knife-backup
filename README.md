@@ -41,6 +41,11 @@ knife backup export cookbooks roles environments -D ~/my_chef_backup
 - `-N`, `--latest` only download the latest version of a cookbook
 - `-I`, `--ignore-permissions` ignore any permission errors during export
 
+#### Optional Switches for restore
+
+- `-I`, `--ignore-metadata-errors` Ignore json metadata errors when restoring cookbooks
+
+
 For more information on commands:
 
 ```bash
