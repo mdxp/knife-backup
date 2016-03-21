@@ -45,9 +45,9 @@ module ServerBackup
       :default => Chef::Config[:knife][:chef_server_backup_dir] ? Chef::Config[:knife][:chef_server_backup_dir] : File.join(".chef", "chef_server_backup")
 
     option :ignore_metadata_errors,
-      :short => "-i",
+      :short => "-I",
       :long => "--ignore-metadata-errors",
-      :description => "Ignore metadata errors when restoring cookbooks",
+      :description => "Ignore json metadata errors when restoring cookbooks",
       :boolean => true,
       :default => Chef::Config[:knife][:ignore_metadata_errors] ? Chef::Config[:knife][:ignore_metadata_errors] : false
 

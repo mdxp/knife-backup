@@ -1,5 +1,6 @@
 *.gem
 .bundle
+.chef
 Gemfile.lock
 pkg/*
 bin/
