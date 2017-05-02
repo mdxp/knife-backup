@@ -24,6 +24,11 @@ if Chef::VERSION =~ /^11\./
   require 'chef/user'
 end
 require 'chef/knife/cookbook_download'
+require 'chef/policy_builder'
+require 'chef/cookbook/synchronizer'
+require 'chef-dk/policyfile/lister'
+require 'chef-dk/policyfile_services/show_policy'
+require 'chef-dk/ui'
 
 module ServerBackup
   class BackupExport < Chef::Knife
@@ -60,7 +65,7 @@ module ServerBackup
     end
 
     private
-    COMPONENTS = %w(clients users nodes roles data_bags environments cookbooks)
+    COMPONENTS = %w(clients users nodes roles data_bags environments policies cookbooks)
     LOAD_TRIES = 5
 
     def validate!
@@ -93,6 +98,77 @@ module ServerBackup
 
     def environments
       backup_standard("environments", Chef::Environment)
+    end
+
+    def policies
+      ui.msg "Backing up policies"
+      p_lister = ChefDK::Policyfile::Lister.new(config: Chef::Config)
+      p_lister.policies_by_group.each do |p_group, policies|
+        policies.keys.each do |p_name|
+          ui.msg "Backing up policy #{p_group}:#{p_name}"
+
+          # Create directory structure
+          dir            = File.join(config[:backup_dir], "policies", p_group, p_name)
+          policyfile_dir = File.join(dir, "policyfile")
+          site_cb_dir    = File.join(dir, "site-cookbooks")
+          lock_file      = File.join(policyfile_dir, "#{p_name}.lock.json")
+          [policyfile_dir, site_cb_dir].each { |d| FileUtils.mkdir_p(d) }
+
+          # Download policyfile lock
+          redirect_stdout(lock_file) do
+            ChefDK::PolicyfileServices::ShowPolicy.new(
+              config: Chef::Config,
+              ui: ChefDK::UI.new,
+              policy_name: p_name,
+              policy_group: p_group
+            ).display_policy_revision
+          end
+
+          # Download policy related cookbooks
+          policy_cookbooks(p_name, p_group, dir)
+
+          # Find site cookbooks and move to different dir
+          filter_site_cookbooks(lock_file).each do |cookbook|
+            FileUtils.mv(
+              File.join(dir, 'cookbooks', cookbook),
+              site_cb_dir
+            )
+          end
+        end
+      end
+    end
+
+    def redirect_stdout(file_path)
+      begin
+        original_stdout = $stdout.clone
+        $stdout.reopen(File.new(file_path, 'w'))
+        retval = yield
+      rescue StandardError => e
+        $stdout.reopen(original_stdout)
+        raise e
+      ensure
+        $stdout.reopen(original_stdout)
+      end
+      retval
+    end
+
+    def policy_cookbooks(policy_name, policy_group, cookbook_path)
+      Chef::Config[:policy_name]     = policy_name
+      Chef::Config[:policy_group]    = policy_group
+      Chef::Config[:file_cache_path] = cookbook_path
+      builder = Chef::PolicyBuilder::Dynamic.new(
+        'fake', {}, {}, nil, Chef::EventDispatch::Base.new
+      )
+      builder.select_implementation(nil)
+      builder.sync_cookbooks
+    end
+
+    def filter_site_cookbooks(policyfile_lock)
+      JSON.parse(
+        File.read(policyfile_lock)
+      )['cookbook_locks'].select do |_k, v|
+        v['source_options'].key?('path')
+      end.keys
     end
 
     def data_bags
