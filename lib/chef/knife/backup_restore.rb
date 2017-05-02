@@ -32,6 +32,7 @@ module ServerBackup
       require 'chef/knife/core/object_loader'
       require 'chef/cookbook_uploader'
       require 'chef/api_client'
+      require 'chef-dk/policyfile/uploader'
       require 'securerandom'
       require 'json'
     end
@@ -61,7 +62,7 @@ module ServerBackup
     end
 
     private
-    COMPONENTS = %w(clients users nodes roles data_bags environments cookbooks)
+    COMPONENTS = %w(clients users nodes roles data_bags environments policies cookbooks)
 
     def validate!
       bad_names = name_args - COMPONENTS
@@ -81,6 +82,33 @@ module ServerBackup
 
     def environments
       restore_standard("environments", Chef::Environment)
+    end
+
+    def policies
+      ui.info "=== Restoring policies ==="
+      Dir.glob(File.join(config[:backup_dir], "policies", "*")).each do |group_dir|
+        Dir.glob(File.join(group_dir, "*", "policyfile", "*")).each do |policyfile_lock|
+          p_name  = File.basename(policyfile_lock, ".lock.json")
+          p_group = File.basename(group_dir)
+          ui.info "Restoring policyfile #{p_group}:#{p_name}"
+          # Create PolicyfileLock object from lock file
+          storage_config = ChefDK::Policyfile::StorageConfig.new
+          storage_config.use_policyfile(policyfile_lock)
+          lock = ChefDK::PolicyfileLock.new(
+            storage_config,
+            ui: ui
+          ).build_from_lock_data(JSON.parse(File.read(policyfile_lock)))
+          # Authenticate and upload policy
+          ChefDK::AuthenticatedHTTP.new(
+            Chef::Config.chef_server_url,
+            signing_key_filename: Chef::Config.client_key,
+            client_name: Chef::Config.node_name
+          ).put(
+            "/policy_groups/#{p_group}/policies/#{p_name}",
+            lock.to_lock
+          )
+        end
+      end
     end
 
     def data_bags
