@@ -10,7 +10,7 @@ Knife-Backup is a [Knife](http://wiki.opscode.com/display/chef/Knife) plugin tha
   * nodes
   * roles
   * environments
-  * data bags
+  * data_bags
   * cookbooks and all their versions.
 
 knife-backup will backup all cookbook versions available on the chef server. Cookbooks are normally available in a repository and should be easy to upload like that, but if you are using various cookbook versions in each environment then it might not be so trivial to find and upload them back to the server; downloading them and having them available to upload like that is simple and clean. If you have too many cookbook [versions](http://www.ducea.com/2013/02/26/knife-cleanup/) then you might want to cleanup them first using something like [knife-cleanup][knifecleanup]
@@ -36,7 +36,7 @@ knife backup export [component component ...] [-D DIR] [options]
 knife backup restore [component component ...] [-D DIR]
 
 #Example:
-knife backup export cookbooks roles environments -D ~/my_chef_backup
+knife backup export cookbooks roles environments data_bags -D ~/my_chef_backup
 ```
 #### Optional Switches for export
 
