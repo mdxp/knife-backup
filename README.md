@@ -10,6 +10,7 @@ Knife-Backup is a [Knife](http://wiki.opscode.com/display/chef/Knife) plugin tha
   * nodes
   * roles
   * environments
+  * policies
   * data bags
   * cookbooks and all their versions.
 
@@ -36,7 +37,7 @@ knife backup export [component component ...] [-D DIR] [options]
 knife backup restore [component component ...] [-D DIR]
 
 #Example:
-knife backup export cookbooks roles environments -D ~/my_chef_backup
+knife backup export cookbooks roles environments policies -D ~/my_chef_backup
 ```
 #### Optional Switches for export
 
